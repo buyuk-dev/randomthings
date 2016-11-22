@@ -17,19 +17,32 @@
 using namespace std;
 
 
-struct Instance
+
+struct Statistics
 {
-    vector<bool> gates;
-
-    int  initialChoice;
-
-    int  revealGate;
-
-    bool shouldSwap;
+    int withSwap;
+    int withoutSwap;
+    int swaps;
 };
 
 
-void initrand()
+struct Settings
+{
+    bool verbose;
+    int  itersnum;
+};
+
+
+struct Instance
+{
+    vector<bool>    gates;
+    int             initialChoice;
+    int             revealGate;
+    bool            shouldSwap;
+};
+
+
+void initializeRandom()
 {
     srand(static_cast<unsigned int>(time(0)));
 }
@@ -87,37 +100,20 @@ Instance randomInstance()
 }
 
 
-string insttostr(const Instance& inst)
+ostream& operator<<(ostream& os, const Instance& inst)
 {
-    ostringstream conv;
-
-    conv << "{ [ ";
-    for (bool v : inst.gates)
+    os << "{ [ ";
+    for (bool v: inst.gates)
     {
-        conv << (v ? '1' : '0');
+        os << (v ? 1 : 0);
     }
-    conv << " ] swap: " << inst.shouldSwap ? 'T' : 'F';
-    conv << ", init: " << inst.initialChoice;
-    conv << ", rev: " << inst.revealGate ? 'T' : 'F';
-    conv << " }";
+    os << " ] swap: " << inst.shouldSwap ? "T" : "F";
+    os << ", init: " << inst.initialChoice;
+    os << ", rev: " << inst.revealGate ? "T" : "F";
+    os << " }";
 
-    return conv.str();
+    return os;
 }
-
-
-struct Statistics
-{
-    int withSwap;
-    int withoutSwap;
-    int swaps;
-};
-
-
-struct Settings
-{
-    bool verbose;
-    int  itersnum;
-};
 
 
 bool simulate(const Instance& inst, Statistics& stats)
@@ -168,7 +164,7 @@ Settings parseArgs(int argc, char* argv[])
 
 int main(int argc, char* argv[])
 {
-    initrand();
+    initializeRandom();
 
     Settings settings = parseArgs(argc, argv);
     cout << "---------------------" << endl;
@@ -185,7 +181,7 @@ int main(int argc, char* argv[])
         int result = simulate(inst, stats) ? 1 : 0;
         if (settings.verbose)
         {
-            cout << insttostr(inst) << " --> " << result << endl;
+            cout << inst << " --> " << result << endl;
         }
     } 
 
