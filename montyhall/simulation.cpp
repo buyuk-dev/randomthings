@@ -23,13 +23,14 @@ struct Statistics
     int withSwap;
     int withoutSwap;
     int swaps;
+    int iters;
 };
 
 
 struct Settings
 {
     bool verbose;
-    int  itersnum;
+    int  iters;
 };
 
 
@@ -42,15 +43,26 @@ struct Instance
 };
 
 
-void initializeRandom()
+double getPercentValue(int val, int total)
 {
-    srand(static_cast<unsigned int>(time(0)));
+    double ratio = double(val) / double(total);
+    return ratio * 100.0f;
+}
+
+
+void initRandomGenerator()
+{
+    time_t tm = time(nullptr);
+    unsigned int seed = static_cast<unsigned int>(tm);
+    srand(seed);
 }
 
 
 int random(int beg, int end)
 {
-    return rand() % (end-beg+1) + beg;
+    int range = (end - beg + 1);
+    int base = rand() % range;
+    return base + beg;
 }
 
 
@@ -141,7 +153,7 @@ Settings parseArgs(int argc, char* argv[])
     if (argc < 3)
     {
         Settings settings;
-        settings.itersnum = -1;
+        settings.iters = -1;
         settings.verbose = false;
         return settings;
     }
@@ -149,54 +161,69 @@ Settings parseArgs(int argc, char* argv[])
     istringstream parser(argv[1]);
     Settings settings;
 
-    int itersnum = 0;
+    int iters = 0;
     string verbose;    
 
-    parser >> itersnum;
+    parser >> iters;
     verbose = argv[2];
 
-    settings.itersnum = itersnum;
+    settings.iters = iters;
     settings.verbose = (verbose == "print");
 
     return settings;
 }
 
 
-int main(int argc, char* argv[])
+string stattostr(int stat, int total, const string& msg)
 {
-    initializeRandom();
+    ostringstream oss;
+    oss << msg << ": " << stat << " [ " << getPercentValue(stat, total) << "% ]";
+    return oss.str();
+}
 
-    Settings settings = parseArgs(argc, argv);
-    cout << "---------------------" << endl;
-    cout << "       SETTINGS      " << endl;
-    cout << "---------------------" << endl;
-    cout << "verbose: " << (settings.verbose ? "true" : "false") << endl;
-    cout << "number of iterations: " << settings.itersnum << endl;
 
-    Statistics stats = {0, 0};
-
-    for (int iter = 0; iter < settings.itersnum; ++iter)
+void printStats(const Statistics& stats, bool header = true)
+{
+    if (header)
     {
-        auto inst = randomInstance();
+        cout << "---------------------" << endl
+             << "     STATISTICS      " << endl
+             << "---------------------" << endl;
+    }
+
+    cout << stattostr(stats.withSwap, stats.swaps, "success swap") << endl
+         << stattostr(stats.withoutSwap, stats.iters - stats.swaps, "success no swap") << endl
+         << stattostr(stats.swaps, stats.iters, "number of swaps") << endl;
+}
+
+
+void run(Settings& settings, Statistics& stats)
+{
+ 
+    for (int iter = 0; iter < settings.iters; ++iter)
+    {
+        Instance inst = randomInstance();
         int result = simulate(inst, stats) ? 1 : 0;
+
         if (settings.verbose)
         {
             cout << inst << " --> " << result << endl;
         }
-    } 
+    }    
+}
 
-    cout << "---------------------" << endl;
-    cout << "       SUMMARY       " << endl;
-    cout << "---------------------" << endl;
-    cout << "success with swap: " << stats.withSwap << endl;
-    cout << "success without swap: " << stats.withoutSwap << endl;
-    cout << "number of swaps: " << stats.swaps << endl;
-    cout << "---------------------" << endl;
-    cout << "percent with swap: " << (double(stats.withSwap) / double(stats.swaps) * 100.0f) << endl;
-    cout << "percent without swap: " << (double(stats.withoutSwap) / double(settings.itersnum - stats.swaps) * 100.0f) << endl;
-    cout << "percent of swaps: " << (double(stats.swaps) / double(settings.itersnum) * 100.0f) << endl;
-    
 
+int main(int argc, char* argv[])
+{
+    initRandomGenerator();
+
+    Settings settings = parseArgs(argc, argv);
+    Statistics stats = {0, 0, 0, 0};
+    stats.iters = settings.iters;
+
+    run(settings, stats);
+
+    printStats(stats);
     return 0;
 }
 
