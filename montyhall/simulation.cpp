@@ -6,126 +6,14 @@
 */
 
 
-#include <iostream>
-#include <cstdlib>
-#include <vector>
-#include <string>
-#include <sstream>
-#include <ctime>
+#include "utils.hpp"
+#include "stats.hpp"
+#include "settings.hpp"
+#include "instance.hpp"
 
 
 using namespace std;
 
-
-
-struct Statistics
-{
-    int withSwap;
-    int withoutSwap;
-    int swaps;
-    int iters;
-};
-
-
-struct Settings
-{
-    bool verbose;
-    int  iters;
-};
-
-
-struct Instance
-{
-    vector<bool>    gates;
-    int             initialChoice;
-    int             revealGate;
-    bool            shouldSwap;
-};
-
-
-double getPercentValue(int val, int total)
-{
-    double ratio = double(val) / double(total);
-    return ratio * 100.0f;
-}
-
-
-void initRandomGenerator()
-{
-    time_t tm = time(nullptr);
-    unsigned int seed = static_cast<unsigned int>(tm);
-    srand(seed);
-}
-
-
-int random(int beg, int end)
-{
-    int range = (end - beg + 1);
-    int base = rand() % range;
-    return base + beg;
-}
-
-
-int revealRandom(const Instance& inst)
-{
-    vector<int> opts;
-    for (int i = 0; i < inst.gates.size(); ++i)
-    {
-        if (inst.initialChoice != i && false == inst.gates[i])
-        {
-            opts.push_back(i);
-        }
-    }
-    return opts[ random(0, opts.size()-1) ];
-}
-
-
-int swapChoice(const Instance& inst)
-{
-    if (!inst.shouldSwap)
-    {
-        return inst.initialChoice;
-    }
-
-    for (int i = 0; i < inst.gates.size(); ++i)
-    {
-        if (i != inst.initialChoice && i != inst.revealGate)
-        {
-            return i;
-        }
-    }
-}
-
-
-Instance randomInstance()
-{
-    Instance inst;
-
-    inst.gates.resize(3, false);
-    inst.gates[ random(0, 2) ] = true;
-
-    inst.initialChoice = random(0, 2);
-    inst.revealGate = revealRandom(inst);
-    inst.shouldSwap = static_cast<bool>(random(0, 1));
-
-    return inst;
-}
-
-
-ostream& operator<<(ostream& os, const Instance& inst)
-{
-    os << "{ [ ";
-    for (bool v: inst.gates)
-    {
-        os << (v ? 1 : 0);
-    }
-    os << " ] swap: " << inst.shouldSwap ? "T" : "F";
-    os << ", init: " << inst.initialChoice;
-    os << ", rev: " << inst.revealGate ? "T" : "F";
-    os << " }";
-
-    return os;
-}
 
 
 bool simulate(const Instance& inst, Statistics& stats)
@@ -148,82 +36,39 @@ bool simulate(const Instance& inst, Statistics& stats)
 }
 
 
-Settings parseArgs(int argc, char* argv[])
+void iterate(Statistics& stats, bool verbose)
 {
-    if (argc < 3)
+    Instance inst = randomInstance();
+    bool result = simulate(inst, stats);
+
+    if (verbose)
     {
-        Settings settings;
-        settings.iters = -1;
-        settings.verbose = false;
-        return settings;
-    }
-    
-    istringstream parser(argv[1]);
-    Settings settings;
-
-    int iters = 0;
-    string verbose;    
-
-    parser >> iters;
-    verbose = argv[2];
-
-    settings.iters = iters;
-    settings.verbose = (verbose == "print");
-
-    return settings;
+        cout << inst << " --> " << (result ? 1 : 0) << endl;
+    } 
 }
 
 
-string stattostr(int stat, int total, const string& msg)
+Statistics run(Settings& settings)
 {
-    ostringstream oss;
-    oss << msg << ": " << stat << " [ " << getPercentValue(stat, total) << "% ]";
-    return oss.str();
-}
+    Statistics stats(settings.iters); 
 
-
-void printStats(const Statistics& stats, bool header = true)
-{
-    if (header)
-    {
-        cout << "---------------------" << endl
-             << "     STATISTICS      " << endl
-             << "---------------------" << endl;
-    }
-
-    cout << stattostr(stats.withSwap, stats.swaps, "success swap") << endl
-         << stattostr(stats.withoutSwap, stats.iters - stats.swaps, "success no swap") << endl
-         << stattostr(stats.swaps, stats.iters, "number of swaps") << endl;
-}
-
-
-void run(Settings& settings, Statistics& stats)
-{
- 
     for (int iter = 0; iter < settings.iters; ++iter)
     {
-        Instance inst = randomInstance();
-        int result = simulate(inst, stats) ? 1 : 0;
+        iterate(stats, settings.verbose);
+    }
 
-        if (settings.verbose)
-        {
-            cout << inst << " --> " << result << endl;
-        }
-    }    
+    return stats;
 }
 
 
 int main(int argc, char* argv[])
 {
-    initRandomGenerator();
+    Settings settings(argc, argv);
+    initRandWithTime();
 
-    Settings settings = parseArgs(argc, argv);
-    Statistics stats = {0, 0, 0, 0};
-    stats.iters = settings.iters;
+    Statistics stats = run(settings);
+    stats.print();
 
-    run(settings, stats);
-
-    printStats(stats);
     return 0;
 }
 
