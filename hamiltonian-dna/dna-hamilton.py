@@ -2,7 +2,7 @@
 """
 Nondeterministic algorithm for finding Hamiltonian path in a driected graph.
 This is a very bad algorithm which I used only as a reference to compare
-agains DNA-computing based approach.
+against DNA-computing based approach.
 
 L. M. Adleman, Science vol, 266 (1994) - "Molecular Computation of Solutions to Combinatorial Problems"
 """
