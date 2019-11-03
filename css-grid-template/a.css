@@ -1,0 +1,33 @@
+html, body {
+    margin: 0;
+    padding: 0;
+}
+#site {
+    display: grid;
+    grid-template-columns: 6fr 1fr;
+    grid-template-rows: 1fr 5fr 1fr;
+    grid-template-areas:
+        "header header"
+        "main sidebar"
+        "footer footer";
+
+    height: 100vh;
+}
+
+#site header {
+    grid-area: header;
+    background-color: red;
+}
+#site aside {
+    grid-area: sidebar;
+    background-color: pink;
+}
+#site main {
+    grid-area: main;
+    background-color: green;
+}
+#site footer {
+    grid-area: footer;
+    background-color: blue;
+}
+
