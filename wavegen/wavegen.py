@@ -5,11 +5,6 @@
     ---------------------------------
     Can be used to generate waves of the particular frequency,
     or sum of all frequencies for frequency response measurements. 
-
-    Required sounddevice package can be installed using pip:
-    
-        pip install sounddevice
- 
 """
 
 import argparse
