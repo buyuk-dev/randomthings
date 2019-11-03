@@ -117,5 +117,5 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     configure()
-    play(args.frequency, args.cycles
+    play(args.frequency, args.cycles)
 
