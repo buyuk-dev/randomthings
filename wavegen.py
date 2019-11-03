@@ -15,6 +15,9 @@
 import argparse
 import math
 
+import numpy.fft
+import matplotlib.pyplot as pyplot
+
 import sounddevice
 
 
@@ -40,6 +43,7 @@ def generate_signal(frequency, cycles):
     """
     step = 1.0 / Config.samplingFrequency
     scale = 0.9
+    print(f"generating signal at {frequency} Hz")
     return [
         scale * math.sin(2 * math.pi * frequency * x)
         for x in drange(0, 2 * math.pi * cycles, step)
@@ -54,6 +58,26 @@ def configure():
     sounddevice.default.device = sounddevice.query_devices()[1]["name"]
 
 
+def normalize(signal):
+    """ Normalize signal to the <-1; 1> range.
+    """
+    total = max(signal)
+    return [
+        2 * x / total - 1
+        for x in signal
+    ]
+
+
+def generate_spectral_signal(frequencies, cycles):
+    """ Generate normalized sum of all given frequencies.
+    """
+    X = [
+        generate_signal(freq, cycles)
+        for freq in frequencies
+    ]
+    return normalize([sum(s) for s in zip(*X)])
+
+
 def play(frequency, length):
     """ Generate signal and play it. This function
         blocks until the entire signal is played.
@@ -62,6 +86,28 @@ def play(frequency, length):
     signal = generate_signal(frequency, length)
     sounddevice.play(signal)
     sounddevice.wait()
+
+
+def play_frequency_spectrum(low, high, cycles):
+    """ Play signal composed of all frequencies in range <low; high).
+    """
+    signal = generate_spectral_signal(range(low, high), cycles)
+    print("playing signal...")
+    sounddevice.play(signal)
+    sounddevice.wait()
+
+
+def compute_spectrum(X):
+    """ Compute normalized frequency spectrum.
+    """
+    FFT = numpy.abs(numpy.fft.fft(X)) / len(X)
+    FFT = FFT[range(int(len(X) / 2))]
+
+    freq = numpy.fft.fftfreq(len(X), 1.0/Config.samplingFrequency)
+    freq = freq[range(int(len(X) / 2))]
+
+    return freq, FFT
+
 
 
 if __name__ == "__main__":
@@ -76,4 +122,5 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     configure()
-    play(args.frequency, args.cycles)
+    play(args.frequency, args.cycles
+
