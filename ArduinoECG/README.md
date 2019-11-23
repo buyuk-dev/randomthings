@@ -21,9 +21,13 @@ ArduinoECG.py [-h] [--window WINDOW] [--nsamples NSAMPLES]
                      [--refresh REFRESH] [--port {usb,bluetooth}]
 ```
 
-optional arguments:
--h, --help              show this help message and exit
---window WINDOW         plot width in samples
---nsamples NSAMPLES     numbder of reads per frame
---refresh REFRESH       frame duration in milliseconds
---port {usb,bluetooth}  default serial port
+**-h, --help** show this help message and exit
+
+**--window WINDOW** plot width in samples
+
+**--nsamples NSAMPLES** numbder of reads per frame
+
+**--refresh REFRESH** frame duration in milliseconds
+
+**--port {usb,bluetooth}** default serial port
+
