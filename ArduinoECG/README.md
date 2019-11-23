@@ -9,3 +9,9 @@ There is no signal processing here, only plotting raw data in more or less real 
 Arduino reads analog data from the sensor and writes it to the serial port.
 
 Python script reads this data and displays the waveform in real time using matplotlib.
+
+## Arduino compilation
+
+```
+arduino-cli compile -b arduino:avr:uno --upload --port /dev/tty.usbmodem14201 ./
+```
