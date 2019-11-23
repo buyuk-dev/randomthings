@@ -34,13 +34,13 @@ def draw(_, data, subplot, config):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--window", type=int, default=3000, help="plot width in samples"
+        "--window", type=int, default=1600, help="plot width in samples"
     )
     parser.add_argument(
-        "--nsamples", type=int, default=100, help="numbder of reads per frame"
+        "--nsamples", type=int, default=80, help="numbder of reads per frame"
     )
     parser.add_argument(
-        "--refresh", type=int, default=100, help="frame duration in milliseconds"
+        "--refresh", type=int, default=80, help="frame duration in milliseconds"
     )
     parser.add_argument(
         "--port",
