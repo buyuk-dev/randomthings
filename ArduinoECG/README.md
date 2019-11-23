@@ -4,14 +4,26 @@
 
 Basic ECG measurement using arduino uno and SparkFun AD8232 ECG sensor.
 
-There is no signal processing here, only plotting raw data in more or less real time.
-
-Arduino reads analog data from the sensor and writes it to the serial port.
-
-Python script reads this data and displays the waveform in real time using matplotlib.
++ streaming data via serial port
++ plotting data in realtime with matplotlib
 
 ## Arduino compilation
 
 ```
 arduino-cli compile -b arduino:avr:uno --upload --port /dev/tty.usbmodem14201 ./
 ```
+
+
+## Usage
+
+```
+ArduinoECG.py [-h] [--window WINDOW] [--nsamples NSAMPLES]
+                     [--refresh REFRESH] [--port {usb,bluetooth}]
+```
+
+optional arguments:
+-h, --help              show this help message and exit
+--window WINDOW         plot width in samples
+--nsamples NSAMPLES     numbder of reads per frame
+--refresh REFRESH       frame duration in milliseconds
+--port {usb,bluetooth}  default serial port
