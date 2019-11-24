@@ -6,6 +6,7 @@ import serial
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from datetime import datetime
+import backend
 
 
 ARDUINO_INT_BYTES = 2
@@ -48,6 +49,11 @@ if __name__ == "__main__":
         default="usb",
         help="default serial port",
     )
+    parser.add_argument(
+        "--save",
+        action="store_true",
+        help="save recording to database on exit"
+    )
     args = parser.parse_args()
 
     args.port = serial.Serial(
@@ -66,3 +72,8 @@ if __name__ == "__main__":
         figure, draw, fargs=(data, subplot, args), interval=args.refresh
     )
     plt.show()
+
+    if args.save:
+        connection = sqlite3.connect("ecg.db")
+        backend.writeRecord(connection, data)
+        connection.close()
