@@ -3,8 +3,10 @@
 
 import argparse
 import pickle
+
 from datetime import datetime
 from pprint import pprint
+from collections import namedtuple
 
 import serial
 import matplotlib.pyplot as pyplot
@@ -13,8 +15,8 @@ import matplotlib.animation as animation
 import backend
 
 
-ARDUINO_INT_BYTES = 2
-ARDUINO_BYTE_ORDER = "little"
+Config = namedtuple("Config", ["int_size", "byte_order"])
+config = Config(2, "little")
 
 
 def draw(_, data, subplot, config):
@@ -23,8 +25,8 @@ def draw(_, data, subplot, config):
     data.extend(
         [
             int.from_bytes(
-                config.port.read(ARDUINO_INT_BYTES),
-                byteorder=ARDUINO_BYTE_ORDER,
+                config.port.read(config.int_size),
+                byteorder=config.byte_order,
                 signed=True,
             )
             for _ in range(config.nsamples)
