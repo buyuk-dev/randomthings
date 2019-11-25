@@ -13,10 +13,17 @@ DB structure:
 """
 
 import os
-import argparse
 import sqlite3
 import pickle
 from datetime import datetime
+
+
+def getConnection(filename):
+    """ Return sqlite db connection object.
+    """
+    if not os.path.isfile(filename):
+        raise Exception(f"Database {filename} not found")
+    return sqlite3.connect(filename)
 
 
 def setupNewDatabase(filename):
@@ -30,7 +37,7 @@ def setupNewDatabase(filename):
             time TEXT,
             data BLOB
         )
-    """
+        """
     )
     connection.commit()
 
@@ -38,8 +45,9 @@ def setupNewDatabase(filename):
 def writeRecord(connection, data):
     """ Insert data record with timestamp to ecg table.
     """
+    record = (datetime.now().isoformat(timespec="seconds"), pickle.dumps(data))
     connection.cursor().execute(
-        "insert into ecg values (?, ?)", (str(datetime.now()), pickle.dumps(data))
+        "insert into ecg values (?, ?)", record
     )
     connection.commit()
 
@@ -60,12 +68,10 @@ def getRecordById(connection, rowid):
     return cursor.fetchone()
 
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--db", default="ecg.db", help="sqlite database file")
-    parser.add_argument("--list", action="store_true", help="list db entries")
-    parser.add_argument("--add", action="store_true", help="insert random record")
-    parser.add_argument("--select", type=int, help="print data for id")
-    args = parser.parse_args()
-    if not os.path.isfile(args.db):
-        setupNewDatabase(args.db)
+def getRecordByTimestamp(connection, timestamp):
+    cursor = connection.cursor()
+    cursor.execute(
+        "select * from ecg where time like ?%",
+        (timestamp.isoformat(timespec="seconds"),)
+    )
+    return cursor.fetchone()
