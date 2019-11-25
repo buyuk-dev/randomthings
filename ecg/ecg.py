@@ -15,8 +15,12 @@ import matplotlib.animation as animation
 import backend
 
 
-Config = namedtuple("Config", ["int_size", "byte_order"])
-config = Config(2, "little")
+ArduinoConfig = namedtuple("ArduinoConfig", ["int_size", "byte_order"])
+config = ArduinoConfig(2, "little")
+serial_ports = {
+    "bluetooth": ("/dev/tty.HC-05-DevB", 9600),
+    "usb": ("/dev/tty.usbmodem14201", 9600),
+}
 
 
 def draw(_, data, subplot, config):
@@ -40,15 +44,7 @@ def draw(_, data, subplot, config):
 def record_command(args):
     """ Handle record subcommand.
     """
-    args.port = serial.Serial(
-        *(
-            {
-                "bluetooth": ("/dev/tty.HC-05-DevB", 9600),
-                "usb": ("/dev/tty.usbmodem14201", 9600),
-            }[args.port]
-        )
-    )
-
+    args.port = serial.Serial(*(serial_ports[args.port]))
     figure = pyplot.figure()
     subplot = figure.add_subplot(1, 1, 1)
     data = [0] * args.window
@@ -76,7 +72,9 @@ def db_command(args):
         record = backend.getRecordById(connection, args.load)
         pyplot.plot(pickle.loads(record[-1]))
         pyplot.show()
-        exit()
+
+    elif args.init:
+        backend.setupNewDatabase(args.db)
 
 
 if __name__ == "__main__":
@@ -124,6 +122,11 @@ if __name__ == "__main__":
         "--load",
         type=int,
         help="load ecg data from db"
+    )
+    parser_db.add_argument(
+        "--init",
+        action="store_true",
+        help="initialize empty db file"
     )
 
     args = parser.parse_args()
