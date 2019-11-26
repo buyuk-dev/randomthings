@@ -1,6 +1,6 @@
 # Arduino + Sparkfun AD8232 ECG sensor
 
-![ECG GIF](/ArduinoECG/ecg.gif?raw=true "ECG signal")
+![ECG SAMPLE RECORDING](/ecg/ecg.png?raw=true "ECG signal")
 
 Basic ECG measurement using arduino uno and SparkFun AD8232 ECG sensor.
 
