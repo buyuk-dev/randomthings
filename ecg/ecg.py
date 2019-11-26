@@ -9,6 +9,7 @@ from pprint import pprint
 from collections import namedtuple
 
 import serial
+from numpy import fft
 import matplotlib.pyplot as pyplot
 import matplotlib.animation as animation
 
@@ -23,21 +24,21 @@ serial_ports = {
 }
 
 
-def draw(_, data, subplot, config):
+def draw(_, data, subplot, params):
     """ Read data from serial port and redraw graph.
     """
     data.extend(
         [
             int.from_bytes(
-                config.port.read(config.int_size),
+                params.port.read(config.int_size),
                 byteorder=config.byte_order,
                 signed=True,
             )
-            for _ in range(config.nsamples)
+            for _ in range(params.nsamples)
         ]
     )
     subplot.clear()
-    subplot.plot(data[-config.window :])
+    subplot.plot(data[-params.window :])
     pyplot.title("{} sec".format(datetime.now()))
 
 
@@ -70,7 +71,14 @@ def db_command(args):
     elif args.load is not None:
         connection = backend.getConnection(args.db)
         record = backend.getRecordById(connection, args.load)
-        pyplot.plot(pickle.loads(record[-1]))
+        signal = pickle.loads(record[-1])[1000:]
+        FFT = fft.fft(signal)
+        #FFT = fft.fft(pickle.loads(record[-1])[1000:])
+        FFT[args.filter[1]:] = 0
+        FFT[:args.filter[0]] = 0
+        frame = fft.ifft(FFT)
+        pyplot.plot(frame[args.range[0]:args.range[1]])
+        #pyplot.plot(pickle.loads(record[-1]))
         pyplot.show()
 
     elif args.init:
@@ -122,6 +130,17 @@ if __name__ == "__main__":
         "--load",
         type=int,
         help="load ecg data from db"
+    )
+    parser_db.add_argument(
+        "--filter",
+        type=int,
+        nargs=2,
+        help="cutoff fft bin"
+    )
+    parser_db.add_argument("--range",
+        type=int,
+        nargs=2,
+        help="samples range to load"
     )
     parser_db.add_argument(
         "--init",
